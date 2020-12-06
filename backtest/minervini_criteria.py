@@ -47,14 +47,16 @@ class Minervini(backtrader.Strategy):
 
 if __name__ == '__main__':
     t = time()
-    stocks = os.listdir("stocks")
-    output = {}
-    for stock in tqdm(stocks):
-        name = stock.split(".")[0]
+
+    path = "stocks/"
+    files = os.listdir(path)
+    stocks = {}
+    for csv in tqdm(files):
+        stock = csv.split(".")[0]
         cerebro = backtrader.Cerebro()
-        cerebro.addstrategy(Minervini, output=output, stock=name)
+        cerebro.addstrategy(Minervini, output=stocks, stock=stock)
         try:
-            dataframe = pandas.read_csv("stocks/" + stock, header=0, parse_dates=["CHART_DATE"])
+            dataframe = pandas.read_csv(path + csv, header=0, parse_dates=["CHART_DATE"])
         except pandas.errors.EmptyDataError:
             continue
 
@@ -62,8 +64,15 @@ if __name__ == '__main__':
         cerebro.adddata(data)
 
         cerebro.run()
+
+        if len(stocks[stock]) < 1:
+            del stocks[stock]
+
         # cerebro.plot(style="bar")
 
-    print(output)
-    print("Total stocks", len(output))
+    for stock in stocks:
+        for d in stocks[stock]:
+            print(stock, d)
+
+    print("Total stocks", len(stocks))
     print(int((time() - t) * 1000), "ms")
